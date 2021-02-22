@@ -8,7 +8,7 @@ cascPath = os.path.dirname(cv2.__file__) + "/data/haarcascade_frontalface_defaul
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 
-def preprocces_img(image_path):
+def preprocess_img(image_path):
     img = cv2.imread(image_path)
     # some images wont work
     try:
@@ -29,7 +29,7 @@ def preprocces_img(image_path):
     img = img[y:y + h, x:x + w]
     img = tf.convert_to_tensor(img, dtype=tf.float32)
     img = tf.image.resize(img, (64, 64))
-    # use mobilenet preproccesing for convinience, even if we use a smaller model
+    # use mobilenet preprocessing for convenience, even if we use a smaller model
     img = tf.keras.applications.mobilenet_v2.preprocess_input(img)
     return img
 
@@ -66,18 +66,20 @@ def is_same_person(imgA, imgB):
 def who_is_here(img):
     people = just_detect(img)
     if people is None:
-        return 'ERROR'
+        # people may have left the frame or turned around
+        return None
     best_people = []
     strengths = []
     for person in people:
         best = 1
         best_name = ''
         for image_path in os.listdir('data/faces/'):
-            preproccessed = preprocces_img('data/faces/' + image_path)
-            if preproccessed != None:
-                val = is_same_person(person, preprocces_img('data/faces/' + image_path))
+            preprocessed = preprocess_img('data/faces/' + image_path)
+            if preprocessed is not None:
+                val = is_same_person(person, preprocess_img('data/faces/' + image_path))
             else:
-                raise ValueError('FACE: {} HAS NO PERSON DETECTED'.format(image_path))
+                raise LookupError("Face: {} in the directory data/faces/ ".format(person) +
+                                  "may not contain a face, or isn't very clear")
             if val < best:
                 best = val
                 best_name = image_path.split('.')[0]

@@ -10,6 +10,8 @@ from oauthlib.oauth2 import MissingTokenError
 from video_loader import getFirstFrame
 from resources.face_recognition import who_is_here
 
+import time
+
 cache_file = Path("test_token.cache")
 
 
@@ -43,19 +45,40 @@ def main():
     if handle:
         print(handle)
 
+
+def wait_for_update(ring):
+    id = -1
+    while True:
+        time.sleep(5)
+        ring.update_data()
+        doorbell = ring.devices['authorized_doorbots'][0]
+        current_id = doorbell.history(limit=1, kind='ding')[0]['id']
+        if current_id != id:
+            id = current_id
+            handle = handle_video(ring)
+            if handle:
+                print(handle)
+
+
 def handle_video(ring):
     devices = ring.devices()
     doorbell = devices['authorized_doorbots'][0]
-    doorbell.recording_download(
-        doorbell.history(limit=50, kind='ding')[0]['id'],
-        filename='last_ding.mp4',
-        override=True)
+
+    def download():
+        try:
+            doorbell.recording_download(
+                doorbell.history(limit=50, kind='ding')[0]['id'],
+                filename='last_ding.mp4',
+                override=True)
+        except:
+            time.sleep(3)
+            download()
+
     frame = getFirstFrame('last_ding.mp4')
     os.remove('last_ding.mp4')
-    people = who_is_here(frame)
-    if people == 'ERROR':
-        print('[WARNING] No faces were detected, something might be blocking their faces,' +
-              ' or the people could have turned around')
+    try:
+        people = who_is_here(frame)
+    except LookupError:
         return None
     return_string = ''
     for person in people:
