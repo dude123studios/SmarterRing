@@ -1,4 +1,10 @@
 import cv2
+from resources.face_recognition import detect_one
+import argparse
+import numpy as np
+
+parser = argparse.ArgumentParser()
+parser.add_argument('name', type=str, help='Name of person to take a picture of')
 
 cam = cv2.VideoCapture(0)
 
@@ -18,7 +24,9 @@ while True:
         break
     elif k%256 == 32:
         # SPACE pressed
-        img_name = "data/faces/{}.jpg".format(input('Enter Your Name'))
-        cv2.imwrite(img_name, frame)
-        print("{} written!".format(img_name))
+        args = parser.parse_args()
+        img = detect_one(frame)
+        with open('data/faces/'+args.name+'.npy','wb') as f:
+            np.save(f, img)
+        print('{} Saved Successfully'.format(args.name))
         break

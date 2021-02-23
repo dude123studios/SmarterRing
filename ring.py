@@ -41,20 +41,23 @@ def main():
 
     devices = ring.devices()
     pprint(devices)
-    handle = handle_video(ring)
-    if handle:
-        print(handle)
+    wait_for_update(ring)
 
 
 def wait_for_update(ring):
     id = -1
+    start = time.time()
     while True:
-        time.sleep(5)
-        ring.update_data()
-        doorbell = ring.devices['authorized_doorbots'][0]
-        current_id = doorbell.history(limit=1, kind='ding')[0]['id']
+        time.sleep(1)
+        try:
+            ring.update_data()
+        except:
+            continue
+        doorbell = ring.devices()['authorized_doorbots'][0]
+        current_id=doorbell.history(limit=5, kind='ding')[0]['id']
         if current_id != id:
             id = current_id
+            print('finished search in:',str(time.time()-start))
             handle = handle_video(ring)
             if handle:
                 print(handle)
@@ -63,21 +66,20 @@ def wait_for_update(ring):
 def handle_video(ring):
     devices = ring.devices()
     doorbell = devices['authorized_doorbots'][0]
-
-    def download():
-        try:
-            doorbell.recording_download(
-                doorbell.history(limit=50, kind='ding')[0]['id'],
-                filename='last_ding.mp4',
-                override=True)
-        except:
-            time.sleep(3)
-            download()
-
+    start = time.time()
+    doorbell.recording_download(
+        doorbell.history(limit=50, kind='ding')[0]['id'],
+            filename='last_ding.mp4',
+            override=True)
+    print('finished download in:',str(time.time()-start))
+    start = time.time()
     frame = getFirstFrame('last_ding.mp4')
     os.remove('last_ding.mp4')
     try:
         people = who_is_here(frame)
+        print('finished detection in:',str(time.time()-start))
+        if people is None:
+            return None
     except LookupError:
         return None
     return_string = ''
