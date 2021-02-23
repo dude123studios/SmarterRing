@@ -54,10 +54,13 @@ def wait_for_update(ring):
         except:
             continue
         doorbell = ring.devices()['authorized_doorbots'][0]
-        current_id=doorbell.history(limit=5, kind='ding')[0]['id']
+        for event in doorbell.history(limit=15, kind='ding'):
+            current_id = event['id']
+            break
         if current_id != id:
             id = current_id
             print('finished search in:',str(time.time()-start))
+            start = time.time()
             handle = handle_video(ring)
             if handle:
                 print(handle)
@@ -74,7 +77,7 @@ def handle_video(ring):
     print('finished download in:',str(time.time()-start))
     start = time.time()
     frame = getFirstFrame('last_ding.mp4')
-    os.remove('last_ding.mp4')
+    #os.remove('last_ding.mp4')
     try:
         people = who_is_here(frame)
         print('finished detection in:',str(time.time()-start))

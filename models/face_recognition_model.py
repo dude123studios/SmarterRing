@@ -66,6 +66,6 @@ def build_model():
   return model
 
 model = build_model()
-model.load_weights('models/model_files/better_face_recogniton.h5')
+model.load_weights('models/model_files/face_recognition(99).h5')
 
 

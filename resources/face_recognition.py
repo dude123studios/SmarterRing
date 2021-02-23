@@ -36,7 +36,7 @@ def detect_one(img):
     return img.numpy()
 
 def detect_all(img):
-    img = img[100:,100:,]
+    img = img[200:,200:,]
     try:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     except:
@@ -52,8 +52,6 @@ def detect_all(img):
     if len(faces) == 0:
         return None
     imgs = [img[y:y + h, x:x + w] for (x, y, w, h) in faces]
-    cv2.imshow('test', imgs[0])
-    cv2.waitKey(10000)
     imgs = [tf.convert_to_tensor(img, dtype=tf.float32) for img in imgs]
     imgs = [tf.image.resize(img, (64, 64)) for img in imgs]
     # use mobilenet preproccesing for convinience, even if we use a smaller model
