@@ -5,4 +5,4 @@ def getFirstFrame(video_path):
     success, image = vidcap.read()
     vidcap.retrieve()
     if success:
-        return image
+        return image[200:,200:]

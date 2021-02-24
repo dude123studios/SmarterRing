@@ -20,7 +20,7 @@ def token_updated(token):
 
 
 def otp_callback():
-    auth_code = input("2FA code: ")
+    auth_code = input("[INPUT] 2FA code: ")
     return auth_code
 
 
@@ -59,7 +59,7 @@ def wait_for_update(ring):
             break
         if current_id != id:
             id = current_id
-            print('finished search in:',str(time.time()-start))
+            print('[INFO] finished search in:',str(time.time()-start))
             start = time.time()
             handle = handle_video(ring)
             if handle:
@@ -74,18 +74,18 @@ def handle_video(ring):
         doorbell.history(limit=50, kind='ding')[0]['id'],
             filename='last_ding.mp4',
             override=True)
-    print('finished download in:',str(time.time()-start))
+    print('[INFO] finished download in:',str(time.time()-start))
     start = time.time()
     frame = getFirstFrame('last_ding.mp4')
     #os.remove('last_ding.mp4')
     try:
         people = who_is_here(frame)
-        print('finished detection in:',str(time.time()-start))
+        print('[INFO] finished detection in:',str(time.time()-start))
         if people is None:
             return None
     except LookupError:
         return None
-    return_string = ''
+    return_string = '[OUTPUT] '
     for person in people:
         return_string = return_string + person + ', '
     return_string = return_string + 'Are/Is at the door!'

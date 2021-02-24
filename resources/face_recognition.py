@@ -21,22 +21,23 @@ def detect_one(img):
         gray,
         scaleFactor=1.1,
         minNeighbors=5,
-        minSize=(60, 60),
+        minSize=(120, 120),
         flags=cv2.CASCADE_SCALE_IMAGE
     )
     if len(faces) == 0:
         return None
-    x, y, w, h = faces[0]
+    x, y, w, h = faces[-1]
     img = img[y:y + h, x:x + w]
+    return img
 
-    img = tf.convert_to_tensor(img, dtype=tf.float32)
+def preprocess(cv2_img):
+    img = tf.convert_to_tensor(cv2_img, dtype=tf.float32)
     img = tf.image.resize(img, (64, 64))
     # use mobilenet preprocessing for convenience, even if we use a smaller model
     img = tf.keras.applications.mobilenet_v2.preprocess_input(img)
-    return img.numpy()
+    return img
 
 def detect_all(img):
-    img = img[200:,200:,]
     try:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     except:
@@ -52,10 +53,7 @@ def detect_all(img):
     if len(faces) == 0:
         return None
     imgs = [img[y:y + h, x:x + w] for (x, y, w, h) in faces]
-    imgs = [tf.convert_to_tensor(img, dtype=tf.float32) for img in imgs]
-    imgs = [tf.image.resize(img, (64, 64)) for img in imgs]
-    # use mobilenet preproccesing for convinience, even if we use a smaller model
-    imgs = [tf.keras.applications.mobilenet_v2.preprocess_input(img) for img in imgs]
+    imgs = [preprocess(img) for img in imgs]
     return imgs
 
 def is_same_person(imgA, imgB):
@@ -72,28 +70,23 @@ def who_is_here(img):
     print('finished image detection in:', str(time.time() - start))
     best_people = []
     strengths = []
-    try:
-        for person in people:
-            best = 1
-            best_name = ''
-            for image_path in os.listdir('data/faces/'):
-                try:
-                    img = tf.convert_to_tensor(np.load('data/faces/'+image_path,allow_pickle=True))
-                    val = is_same_person(person, img)
-                except:
-                    raise LookupError("Face: {} in the directory data/faces/ ".format(image_path) +
-                                      " may not contain a face, or isn't very clear. Try taking another one")
-                if val < best:
-                    best = val
-                    best_name = image_path.split('.')[0]
-            if best > 0.4:
-                best_name = 'UNKNOWN'
-            best_people.append(best_name)
-            strengths.append(best)
-        print(strengths)
-    except TypeError:
-        print("No one is at the door, or their face isn't clear")
+    if people == None:
         return None
+    for person in people:
+        best = 1
+        best_name = ''
+        for image_path in os.listdir('data/faces/'):
+            img = np.load('data/faces/'+image_path,allow_pickle=True)
+            img = preprocess(img)
+            val = is_same_person(person, img)
+            if val < best:
+                best = val
+                best_name = image_path.split('.')[0]
+        if best > 0.4:
+            best_name = 'UNKNOWN'
+        best_people.append(best_name)
+        strengths.append(best)
+    print(strengths)
     return best_people
 
 
