@@ -1,8 +1,8 @@
 import cv2
 from resources.face_recognition import detect_one
-from resources.face_recognition import who_is_here
 import argparse
 import numpy as np
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('name', type=str, help='Name of person to take a picture of')
@@ -27,10 +27,15 @@ while True:
         # SPACE pressed
         args = parser.parse_args()
         img = detect_one(frame)
+
         if img is None:
             print("[ERROR] Image isn't clear! Try again!")
             continue
-        with open('data/faces/'+args.name+'.npy','wb') as f:
-            np.save(f, img)
+        dir = 'data/faces/'+args.name+'/'
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        with open(dir+str(len(os.listdir(dir)))+'.npy','wb') as f:
+            np.save(f,img)
         print('[INFO] {} Saved Successfully'.format(args.name))
-        break
+
+

@@ -1,4 +1,5 @@
 import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.ERROR)
 from tensorflow.keras.layers import *
 
 class CNN_Block(tf.keras.Model):

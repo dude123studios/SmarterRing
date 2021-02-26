@@ -1,4 +1,5 @@
 tensorflow==2.4.1
-Pillow==6.2.1
+tensorflow_hub==0.11.0
 opencv-python==4.5.1.48
 ring-doorbell==0.7.0
+mtcnn==0.1.0
